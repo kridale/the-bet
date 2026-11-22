@@ -680,6 +680,48 @@ h1 {
   color: #b7b1a6;
   font-size: 0.92rem;
 }
+.fine a { color: #e7c27a; }
+
+.sales { margin-top: 16px; }
+.ps {
+  margin-top: 6px;
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: clamp(4.4rem, 20vw, 7.4rem);
+  font-weight: 700;
+  line-height: 0.84;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.ps.missing { color: #8f8a80; }
+.statgrid, .contextgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.statgrid { margin-top: 16px; }
+.contextgrid { margin-top: 10px; }
+.statgrid div, .contextgrid div {
+  padding: 12px;
+  border-radius: 16px;
+  background: #101218;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.statgrid span, .contextgrid span {
+  display: block;
+  color: #8f8a80;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.statgrid strong, .contextgrid strong {
+  display: block;
+  margin-top: 2px;
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-size: clamp(1.35rem, 5vw, 1.7rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
 
 footer {
   margin-top: 22px;
@@ -727,6 +769,7 @@ footer a { color: #e7c27a; }
   }
   .face { height: 100%; }
   .legs { grid-template-columns: 1fr 1fr; }
+  .statgrid { grid-template-columns: repeat(4, 1fr); }
   .bottom { grid-template-columns: 0.78fr 1.22fr; }
   .panel { padding: 24px 22px; }
   .chart-body { height: 300px; }
