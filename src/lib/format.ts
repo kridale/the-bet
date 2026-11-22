@@ -47,6 +47,15 @@ export function formatMultiple(n: number) {
   return `${n.toFixed(2)}×`;
 }
 
+export function formatQuarterTick(iso: string) {
+  const match = /^(\d{4})-(\d{2})-\d{2}$/.exec(iso);
+  const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  if (!match) return iso;
+  const label = names[Number(match[2]) - 1];
+  if (!label) return iso;
+  return `${label} ${match[1].slice(2)}`;
+}
+
 export function formatCalendar(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Intl.DateTimeFormat("en-GB", {

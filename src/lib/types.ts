@@ -15,19 +15,20 @@ export type SalesQuarter = {
   end: string;
   revenue: number;
   source: "sec" | "yahoo";
+  close: number | null;
+  marketCap: number | null;
 };
 
 export type SalesFundamentals =
   | {
       ok: true;
-      shares: number;
-      shareBasis: "implied" | "basic";
-      ttmRevenue: number;
+      shares: number | null;
+      shareBasis: "implied" | "basic" | null;
+      ttmRevenue: number | null;
       asOf: string;
       quarters: SalesQuarter[];
       secFilingUrl: string | null;
       yahooUrl: string;
-      secMatchedQuarters: string[];
     }
   | { ok: false; error: string };
 
