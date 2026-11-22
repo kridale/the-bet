@@ -683,6 +683,59 @@ h1 {
 .fine a { color: #e7c27a; }
 
 .sales { margin-top: 16px; }
+.sales .contextgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: 18px;
+}
+.ps-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1.2rem;
+  height: 132px;
+  width: 100%;
+  pointer-events: none;
+}
+.bar-col { flex: 1; min-width: 0; text-align: center; }
+.qoq {
+  min-height: 1rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.qoq.up { color: #8dffc0; }
+.qoq.down { color: #ff8d97; }
+.bar-track {
+  height: 132px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+}
+.bar {
+  width: min(34px, 78%);
+  min-height: 4px;
+  border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(180deg, rgba(154, 246, 255, 0.85), rgba(26, 110, 128, 0.95));
+}
+.bar.latest { background: linear-gradient(180deg, #ffe1a8, #ff8a2a); }
+.bar-label, .bar-rev, .bar-rate {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  line-height: 1.15;
+}
+.bar-rate {
+  color: #ffd27a;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-height: 1em;
+}
+.bar-label { color: #8f8a80; }
+.bar-rev { color: #f4f0e8; font-variant-numeric: tabular-nums; }
 .ps {
   margin-top: 6px;
   font-family: "Barlow Condensed", "Arial Narrow", sans-serif;

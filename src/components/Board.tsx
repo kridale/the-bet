@@ -8,6 +8,7 @@ import {
   formatEt,
   formatMultiple,
   formatNok,
+  formatQuarterTick,
   formatShareCount,
   formatShort,
   formatSignedPct,
@@ -292,8 +293,54 @@ function PriceChart({ points, strike, reference }: { points: { date: string; clo
   );
 }
 
-function multipleAt(price: number, sales: Extract<SalesFundamentals, { ok: true }>) {
-  return (price * sales.shares) / sales.ttmRevenue;
+function ratio(price: number | null, base: number | null) {
+  if (price == null || base == null || !(price > 0) || !(base > 0)) return null;
+  return price / base;
+}
+
+function quarterGap(start: string, end: string) {
+  return (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000;
+}
+
+function RevenueBars({ quarters }: { quarters: Extract<SalesFundamentals, { ok: true }>["quarters"] }) {
+  const maxRevenue = Math.max(...quarters.map((quarter) => quarter.revenue));
+  const rated = quarters.flatMap((quarter, index) => (
+    quarter.marketCap != null && quarter.close != null ? [{ index, multiple: quarter.marketCap / (quarter.revenue * 4) }] : []
+  ));
+  const maxMultiple = rated.length ? Math.max(...rated.map((point) => point.multiple)) : 0;
+  const x = (index: number) => ((index + 0.5) / quarters.length) * 100;
+  const y = (multiple: number) => 8 + (1 - multiple / (maxMultiple * 1.2)) * 84;
+  const line = rated.map((point, index) => `${index === 0 ? "M" : "L"}${x(point.index).toFixed(2)},${y(point.multiple).toFixed(2)}`).join(" ");
+
+  return (
+    <div className="bars" role="img" aria-label="Quarterly revenue with quarter-on-quarter growth">
+      {rated.length > 1 && (
+        <svg className="ps-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d={line} fill="none" stroke="#ffd27a" strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+        </svg>
+      )}
+      {quarters.map((quarter, index) => {
+        const previous = index > 0 ? quarters[index - 1] : null;
+        const consecutive = previous != null && quarterGap(previous.end, quarter.end) >= 80 && quarterGap(previous.end, quarter.end) <= 100;
+        const growth = consecutive ? (quarter.revenue - previous.revenue) / previous.revenue * 100 : null;
+        const latest = index === quarters.length - 1;
+        const point = rated.find((item) => item.index === index);
+        return (
+          <div className="bar-col" key={quarter.end}>
+            <div className={growth == null ? "qoq" : growth >= 0 ? "qoq up" : "qoq down"}>
+              {growth == null ? "" : formatSignedPct(growth, 0)}
+            </div>
+            <div className="bar-track">
+              <div className={latest ? "bar latest" : "bar"} style={{ height: `${(quarter.revenue / maxRevenue) * 100}%` }} />
+            </div>
+            <div className="bar-label">{formatQuarterTick(quarter.end)}</div>
+            <div className="bar-rev">{formatCompactUsd(quarter.revenue)}</div>
+            {rated.length > 1 && <div className="bar-rate">{point ? formatMultiple(point.multiple) : "\u00a0"}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function SalesCard({
@@ -307,62 +354,73 @@ function SalesCard({
   referencePrice: number;
   sales: SalesFundamentals | null;
 }) {
-  const ready = sales?.ok === true && price != null;
-  const live = ready ? multipleAt(price, sales) : null;
-  const cap = ready ? price * sales.shares : null;
+  const book = sales?.ok ? sales : null;
+  const latest = book?.quarters[book.quarters.length - 1] ?? null;
+  const annualized = latest ? latest.revenue * 4 : null;
+  const shares = book?.shares ?? null;
+  const cap = price != null && shares != null ? price * shares : null;
+  const runRate = ratio(cap, annualized);
+  const ttm = ratio(price != null && shares != null ? price * shares : null, book?.ttmRevenue ?? null);
+  const strikeRate = ratio(shares != null ? strike * shares : null, annualized);
+  const referenceRate = ratio(shares != null ? referencePrice * shares : null, annualized);
+  const hasLine = (book?.quarters.filter((quarter) => quarter.close != null && quarter.marketCap != null).length ?? 0) > 1;
+
   return (
     <section className="panel sales">
-      <p className="kicker">Trailing sales</p>
-      <h2 className="track-title">Price / sales</h2>
-      <p className={live == null ? "ps missing" : "ps"}>{live == null ? "—" : formatMultiple(live)}</p>
+      <p className="kicker">Last quarter ×4</p>
+      <h2 className="track-title">P/S, run-rate</h2>
+      <p className={runRate == null ? "ps missing" : "ps"}>{runRate == null ? "—" : formatMultiple(runRate)}</p>
       <p className="lede">
-        {sales?.ok
-          ? "Live price times shares, divided by trailing twelve-month revenue."
-          : "P/S is unavailable. Shares outstanding or trailing revenue did not come back, so nothing here is filled in."}
+        {latest && annualized
+          ? `Quarter ended ${formatCalendar(latest.end)}. ${formatCompactUsd(latest.revenue)} × 4 = ${formatCompactUsd(annualized)}.`
+          : "Run-rate P/S is unavailable. The latest quarter or the share count did not come back, so nothing here is filled in."}
       </p>
-      {sales?.ok && (
+      {book && (
         <>
+          <div className="contextgrid triples">
+            <div>
+              <span>TTM P/S</span>
+              <strong>{ttm == null ? "—" : formatMultiple(ttm)}</strong>
+            </div>
+            <div>
+              <span>At {formatUsd(strike)}</span>
+              <strong>{strikeRate == null ? "—" : formatMultiple(strikeRate)}</strong>
+            </div>
+            <div>
+              <span>At {formatUsd(referencePrice)}</span>
+              <strong>{referenceRate == null ? "—" : formatMultiple(referenceRate)}</strong>
+            </div>
+          </div>
+          <RevenueBars quarters={book.quarters} />
+          {hasLine && <p className="fine">The line is run-rate P/S at that quarter’s close, using Yahoo’s market cap on the quarter-end date. Earlier quarters have no listed close.</p>}
           <div className="statgrid">
             <div>
               <span>Market cap</span>
               <strong>{cap == null ? "—" : formatCompactUsd(cap)}</strong>
             </div>
             <div>
+              <span>Last quarter</span>
+              <strong>{latest ? formatCompactUsd(latest.revenue) : "—"}</strong>
+            </div>
+            <div>
               <span>TTM revenue</span>
-              <strong>{formatCompactUsd(sales.ttmRevenue)}</strong>
+              <strong>{book.ttmRevenue == null ? "—" : formatCompactUsd(book.ttmRevenue)}</strong>
             </div>
             <div>
-              <span>Revenue through</span>
-              <strong>{formatCalendar(sales.asOf)}</strong>
-            </div>
-            <div>
-              <span>{sales.shareBasis === "implied" ? "Implied shares" : "Shares"}</span>
-              <strong>{formatShareCount(sales.shares)}</strong>
-            </div>
-          </div>
-          <div className="contextgrid">
-            <div>
-              <span>At the {formatUsd(strike)} strike</span>
-              <strong>{formatMultiple(multipleAt(strike, sales))}</strong>
-            </div>
-            <div>
-              <span>At the {formatUsd(referencePrice)} close</span>
-              <strong>{formatMultiple(multipleAt(referencePrice, sales))}</strong>
+              <span>{book.shareBasis === "implied" ? "Implied shares" : "Shares"}</span>
+              <strong>{shares == null ? "—" : formatShareCount(shares)}</strong>
             </div>
           </div>
           <p className="fine">
-            The strike and 18 Nov 2026 figures use today’s share count and TTM revenue, not the multiple printed on those dates.
-            Quarters: {sales.quarters.map((quarter) => `${formatCalendar(quarter.end)} ${formatCompactUsd(quarter.revenue)}`).join(" · ")}.
-            {sales.secMatchedQuarters.length > 0
-              ? ` ${sales.secMatchedQuarters.map((date) => formatCalendar(date)).join(" and ")} match the SEC filing.`
-              : ""}
+            The strike and 18 Nov 2026 multiples use today’s share count and the latest quarter’s run-rate, not the multiple printed on those dates.
+            SEC quarters replace Yahoo when the filing reports that quarter.
           </p>
           <p className="fine">
-            <a href={sales.yahooUrl} target="_blank" rel="noreferrer">Yahoo key statistics</a>
-            {sales.secFilingUrl && (
+            <a href={book.yahooUrl} target="_blank" rel="noreferrer">Yahoo key statistics</a>
+            {book.secFilingUrl && (
               <>
                 {" · "}
-                <a href={sales.secFilingUrl} target="_blank" rel="noreferrer">SEC filing</a>
+                <a href={book.secFilingUrl} target="_blank" rel="noreferrer">SEC filing</a>
               </>
             )}
           </p>

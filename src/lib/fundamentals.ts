@@ -1,4 +1,5 @@
-import type { SalesFundamentals } from "./types";
+import type { SalesFundamentals, SalesQuarter } from "./types";
+import { fetchChart } from "./yahoo";
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -83,15 +84,25 @@ function latestFilingUrl(submissions: {
   return `https://www.sec.gov/Archives/edgar/data/${Number(CIK)}/${accession}/${doc}`;
 }
 
-function yahooQuarters(payload: { timeseries?: { result?: Array<{ quarterlyTotalRevenue?: Array<{ asOfDate?: string; periodType?: string; reportedValue?: { raw?: number } }> }> } }) {
-  const series = payload.timeseries?.result?.flatMap((item) => item.quarterlyTotalRevenue ?? []) ?? [];
-  const quarters: Quarter[] = [];
-  for (const row of series) {
-    const revenue = row.reportedValue?.raw;
-    if (row.periodType !== "3M" || !row.asOfDate || revenue == null || !(revenue > 0)) continue;
-    quarters.push({ end: row.asOfDate, revenue, source: "yahoo" });
+type TimedValue = { asOfDate?: string; periodType?: string; reportedValue?: { raw?: number } };
+
+function readSeries(payload: { timeseries?: { result?: Array<Record<string, unknown>> } }, key: string) {
+  const rows = payload.timeseries?.result?.flatMap((item) => {
+    const series = item[key];
+    return Array.isArray(series) ? series as TimedValue[] : [];
+  }) ?? [];
+  const values = new Map<string, number>();
+  for (const row of rows) {
+    const amount = row.reportedValue?.raw;
+    if (!row.asOfDate || amount == null || !(amount > 0)) continue;
+    if (key === "quarterlyTotalRevenue" && row.periodType !== "3M") continue;
+    values.set(row.asOfDate, amount);
   }
-  return quarters;
+  return values;
+}
+
+function yahooQuarters(revenues: Map<string, number>) {
+  return [...revenues.entries()].map(([end, revenue]) => ({ end, revenue, source: "yahoo" as const }));
 }
 
 function mergeQuarters(sec: Quarter[], yahoo: Quarter[]) {
@@ -111,54 +122,74 @@ function trailingFour(quarters: Quarter[]) {
   return last;
 }
 
+function sessionDate(unixSeconds: number) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(unixSeconds * 1000));
+}
+
+function closesByDate(result: { timestamp?: number[]; indicators?: { quote?: Array<{ close?: Array<number | null> }> } }) {
+  const stamps = result.timestamp ?? [];
+  const closes = result.indicators?.quote?.[0]?.close ?? [];
+  const byDate = new Map<string, number>();
+  stamps.forEach((stamp, index) => {
+    const close = closes[index];
+    if (close == null || !(close > 0)) return;
+    byDate.set(sessionDate(stamp), Number(close.toFixed(2)));
+  });
+  return byDate;
+}
+
 async function loadSalesFundamentals(): Promise<SalesFundamentals> {
   const session = await yahooSession();
-  const [summary, series, facts, submissions] = await Promise.all([
+  const [summary, series, facts, submissions, chart] = await Promise.all([
     yahooJson("/v10/finance/quoteSummary/SPCX?modules=defaultKeyStatistics", session),
     yahooJson(
-      "/ws/fundamentals-timeseries/v1/finance/timeseries/SPCX?symbol=SPCX&type=quarterlyTotalRevenue&period1=1577836800&period2=1900000000",
+      "/ws/fundamentals-timeseries/v1/finance/timeseries/SPCX?symbol=SPCX&type=quarterlyTotalRevenue,quarterlyMarketCap&period1=1400000000&period2=1900000000",
       session
     ),
     secJson(`https://data.sec.gov/api/xbrl/companyfacts/CIK${CIK}.json`).catch(() => null),
     secJson(`https://data.sec.gov/submissions/CIK${CIK}.json`).catch(() => null),
+    fetchChart("SPCX", {
+      period1: "1577836800",
+      period2: String(Math.floor(Date.now() / 1000) + 86_400),
+      interval: "1d",
+    }).catch(() => null),
   ]);
 
   const stats = summary?.quoteSummary?.result?.[0]?.defaultKeyStatistics ?? {};
   const implied = Number(stats.impliedSharesOutstanding?.raw);
   const basic = Number(stats.sharesOutstanding?.raw);
-  const shares = implied > 0 ? implied : basic;
-  const shareBasis = implied > 0 ? "implied" : "basic";
-  if (!(shares > 0)) {
-    return { ok: false, error: "Yahoo did not return shares outstanding." };
-  }
+  const shares = implied > 0 ? implied : basic > 0 ? basic : null;
+  const shareBasis = implied > 0 ? "implied" : basic > 0 ? "basic" : null;
 
   const sec = facts ? secQuarters(facts) : [];
-  const yahoo = yahooQuarters(series);
-  const window = trailingFour(mergeQuarters(sec, yahoo));
-  if (!window) {
-    return { ok: false, error: "Fewer than four consecutive quarterly revenues were returned." };
-  }
+  const revenues = readSeries(series, "quarterlyTotalRevenue");
+  const marketCaps = readSeries(series, "quarterlyMarketCap");
+  const merged = mergeQuarters(sec, yahooQuarters(revenues));
+  if (!merged.length) return { ok: false, error: "No quarterly revenue was returned." };
 
-  const ttmRevenue = window.reduce((sum, quarter) => sum + quarter.revenue, 0);
-  if (!(ttmRevenue > 0)) return { ok: false, error: "Trailing revenue was not a positive number." };
-
-  const secMatchedQuarters = window
-    .filter((quarter) => {
-      const filed = sec.find((item) => item.end === quarter.end);
-      return filed != null && Math.abs(filed.revenue - quarter.revenue) < 1000;
-    })
-    .map((quarter) => quarter.end);
+  const closes = chart ? closesByDate(chart) : new Map<string, number>();
+  const quarters: SalesQuarter[] = merged.map((quarter) => ({
+    ...quarter,
+    close: closes.get(quarter.end) ?? null,
+    marketCap: marketCaps.get(quarter.end) ?? null,
+  }));
+  const window = trailingFour(merged);
+  const ttmRevenue = window ? window.reduce((sum, quarter) => sum + quarter.revenue, 0) : null;
 
   return {
     ok: true,
-    shares,
-    shareBasis,
-    ttmRevenue,
-    asOf: window[window.length - 1].end,
-    quarters: window,
+    shares: shares > 0 ? shares : null,
+    shareBasis: shares > 0 ? shareBasis : null,
+    ttmRevenue: ttmRevenue && ttmRevenue > 0 ? ttmRevenue : null,
+    asOf: quarters[quarters.length - 1].end,
+    quarters,
     secFilingUrl: submissions ? latestFilingUrl(submissions) : null,
     yahooUrl: "https://finance.yahoo.com/quote/SPCX/key-statistics/",
-    secMatchedQuarters,
   };
 }
 
