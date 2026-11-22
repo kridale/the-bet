@@ -27,6 +27,26 @@ export function formatSignedPct(n: number, digits = 2) {
   return body;
 }
 
+export function formatCompactUsd(n: number) {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? "−" : "";
+  const body = (value: number, suffix: string) => `${sign}$${value.toFixed(3)}${suffix}`;
+  if (abs >= 1e12) return body(abs / 1e12, "T");
+  if (abs >= 1e9) return body(abs / 1e9, "B");
+  if (abs >= 1e6) return body(abs / 1e6, "M");
+  return formatUsd(n);
+}
+
+export function formatShareCount(n: number) {
+  if (n >= 1e9) return `${(n / 1e9).toFixed(3)}B`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(3)}M`;
+  return n.toLocaleString("en-US");
+}
+
+export function formatMultiple(n: number) {
+  return `${n.toFixed(2)}×`;
+}
+
 export function formatCalendar(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Intl.DateTimeFormat("en-GB", {

@@ -4,8 +4,11 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { SETTLEMENT_TARGET, SPCX } from "@/lib/contract";
 import {
   formatCalendar,
+  formatCompactUsd,
   formatEt,
+  formatMultiple,
   formatNok,
+  formatShareCount,
   formatShort,
   formatSignedPct,
   formatSignedUsd,
@@ -14,7 +17,7 @@ import {
   zonedTimeToUtc,
 } from "@/lib/format";
 import { settled } from "@/lib/settlement";
-import type { SpcxSnapshot } from "@/lib/types";
+import type { SalesFundamentals, SpcxSnapshot } from "@/lib/types";
 
 function Rocket({ className }: { className?: string }) {
   const raw = useId().replace(/:/g, "");
@@ -289,6 +292,86 @@ function PriceChart({ points, strike, reference }: { points: { date: string; clo
   );
 }
 
+function multipleAt(price: number, sales: Extract<SalesFundamentals, { ok: true }>) {
+  return (price * sales.shares) / sales.ttmRevenue;
+}
+
+function SalesCard({
+  price,
+  strike,
+  referencePrice,
+  sales,
+}: {
+  price: number | null;
+  strike: number;
+  referencePrice: number;
+  sales: SalesFundamentals | null;
+}) {
+  const ready = sales?.ok === true && price != null;
+  const live = ready ? multipleAt(price, sales) : null;
+  const cap = ready ? price * sales.shares : null;
+  return (
+    <section className="panel sales">
+      <p className="kicker">Trailing sales</p>
+      <h2 className="track-title">Price / sales</h2>
+      <p className={live == null ? "ps missing" : "ps"}>{live == null ? "—" : formatMultiple(live)}</p>
+      <p className="lede">
+        {sales?.ok
+          ? "Live price times shares, divided by trailing twelve-month revenue."
+          : "P/S is unavailable. Shares outstanding or trailing revenue did not come back, so nothing here is filled in."}
+      </p>
+      {sales?.ok && (
+        <>
+          <div className="statgrid">
+            <div>
+              <span>Market cap</span>
+              <strong>{cap == null ? "—" : formatCompactUsd(cap)}</strong>
+            </div>
+            <div>
+              <span>TTM revenue</span>
+              <strong>{formatCompactUsd(sales.ttmRevenue)}</strong>
+            </div>
+            <div>
+              <span>Revenue through</span>
+              <strong>{formatCalendar(sales.asOf)}</strong>
+            </div>
+            <div>
+              <span>{sales.shareBasis === "implied" ? "Implied shares" : "Shares"}</span>
+              <strong>{formatShareCount(sales.shares)}</strong>
+            </div>
+          </div>
+          <div className="contextgrid">
+            <div>
+              <span>At the {formatUsd(strike)} strike</span>
+              <strong>{formatMultiple(multipleAt(strike, sales))}</strong>
+            </div>
+            <div>
+              <span>At the {formatUsd(referencePrice)} close</span>
+              <strong>{formatMultiple(multipleAt(referencePrice, sales))}</strong>
+            </div>
+          </div>
+          <p className="fine">
+            The strike and 18 Nov 2026 figures use today’s share count and TTM revenue, not the multiple printed on those dates.
+            Quarters: {sales.quarters.map((quarter) => `${formatCalendar(quarter.end)} ${formatCompactUsd(quarter.revenue)}`).join(" · ")}.
+            {sales.secMatchedQuarters.length > 0
+              ? ` ${sales.secMatchedQuarters.map((date) => formatCalendar(date)).join(" and ")} match the SEC filing.`
+              : ""}
+          </p>
+          <p className="fine">
+            <a href={sales.yahooUrl} target="_blank" rel="noreferrer">Yahoo key statistics</a>
+            {sales.secFilingUrl && (
+              <>
+                {" · "}
+                <a href={sales.secFilingUrl} target="_blank" rel="noreferrer">SEC filing</a>
+              </>
+            )}
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
 function money(amount: number, currency: "USD" | "NOK") {
   return currency === "USD" ? formatUsd(amount) : formatNok(amount);
 }
@@ -418,6 +501,13 @@ export default function Board({ initial }: { initial: SpcxSnapshot }) {
           </article>
         </div>
       </div>
+
+      <SalesCard
+        price={live?.price ?? null}
+        strike={strike}
+        referencePrice={live?.referencePrice ?? SPCX.referenceClose}
+        sales={live?.sales ?? null}
+      />
 
       <section className="panel" style={{ marginTop: 16 }}>
         <div className="chart-head">

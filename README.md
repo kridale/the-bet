@@ -29,3 +29,5 @@ The raw prints, volumes, request URLs, and the rounding rule are in [`data/nvda-
 - Splits adjust the strike by the same ratio. Dividends do not. A share exchange divides the strike by the exchange ratio. A cash takeover is decided by the deal price.
 
 The page asks `/api/spcx`, which reads Yahoo’s chart API on the server. The browser never calls Yahoo, which is what was breaking the quote on a phone.
+
+Price / sales (TTM) is the live price times shares, divided by trailing twelve-month revenue. Shares are Yahoo’s implied shares outstanding when that field is present, because that is the count behind Yahoo’s published market cap; otherwise the basic shares-outstanding field is used. Revenue is the sum of the latest four consecutive quarterly totals. A quarter reported in the SEC company-facts feed replaces the Yahoo quarter. The share count and revenue are cached for about an hour; the multiple is recomputed from the live price on each request. If either input is missing, the multiple is shown as a dash.

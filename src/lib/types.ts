@@ -11,6 +11,26 @@ export type HistoryPoint = {
   close: number;
 };
 
+export type SalesQuarter = {
+  end: string;
+  revenue: number;
+  source: "sec" | "yahoo";
+};
+
+export type SalesFundamentals =
+  | {
+      ok: true;
+      shares: number;
+      shareBasis: "implied" | "basic";
+      ttmRevenue: number;
+      asOf: string;
+      quarters: SalesQuarter[];
+      secFilingUrl: string | null;
+      yahooUrl: string;
+      secMatchedQuarters: string[];
+    }
+  | { ok: false; error: string };
+
 export type SpcxQuote = {
   ok: true;
   symbol: "SPCX";
@@ -28,6 +48,8 @@ export type SpcxQuote = {
   referenceClose: number;
   referenceDate: string;
   splits: SplitEvent[];
+  referencePrice: number;
+  sales: SalesFundamentals;
   source: string;
 };
 

@@ -1,4 +1,5 @@
 import { SPCX } from "./contract";
+import { getSalesFundamentals } from "./fundamentals";
 import type { HistoryPoint, MarketState, SpcxSnapshot, SplitEvent } from "./types";
 import { fetchChart } from "./yahoo";
 
@@ -48,9 +49,10 @@ export async function getSpcxSnapshot(): Promise<SpcxSnapshot> {
   try {
     const period1 = String(Math.floor(Date.UTC(2026, 10, 16) / 1000));
     const period2 = String(Math.floor(Date.now() / 1000) + 86_400);
-    const [quote, historyResult] = await Promise.all([
+    const [quote, historyResult, sales] = await Promise.all([
       fetchChart("SPCX", { interval: "1d", range: "1d", includePrePost: "true" }),
       fetchChart("SPCX", { period1, period2, interval: "1d", events: "div|split" }),
+      getSalesFundamentals(),
     ]);
 
     const meta = quote?.meta ?? {};
@@ -86,7 +88,9 @@ export async function getSpcxSnapshot(): Promise<SpcxSnapshot> {
     const previousClose = todayIndex > 0 ? history[todayIndex - 1].close : null;
     const change = previousClose == null ? null : round2(price - previousClose);
     const changePercent = previousClose ? ((price - previousClose) / previousClose) * 100 : null;
-    const strike = round2(SPCX.strike / factorAfter(splits, SPCX.referenceDate));
+    const shareFactor = factorAfter(splits, SPCX.referenceDate);
+    const strike = round2(SPCX.strike / shareFactor);
+    const referencePrice = round2(SPCX.referenceClose / shareFactor);
 
     return {
       ok: true,
@@ -105,6 +109,8 @@ export async function getSpcxSnapshot(): Promise<SpcxSnapshot> {
       referenceClose: SPCX.referenceClose,
       referenceDate: SPCX.referenceDate,
       splits: splits.filter((split) => split.date > SPCX.referenceDate),
+      referencePrice,
+      sales,
       source: "Yahoo Finance chart API",
     };
   } catch (error) {
