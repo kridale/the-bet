@@ -1,0 +1,118 @@
+{
+  "bet": {
+    "title": "NVDA vs NHY — total return showdown",
+    "sides": {
+      "NVDA": "THE CLAW",
+      "NHY": "G-WAGON"
+    },
+    "stake": "Loser buys a full night at Le Benjamin",
+    "measure": "Total return, including cash dividends, each leg in its own currency. No FX conversion.",
+    "struck": "2025-11-21"
+  },
+  "settlementRule": {
+    "countdownInSource": "2026-11-21T16:00:00-05:00",
+    "countdownMeaning": "21 November 2026, 16:00 America/New_York, the instant hardcoded in the original countdown.",
+    "countdownWeekday": "Saturday",
+    "sessionUsed": "2026-11-20",
+    "sessionWeekday": "Friday",
+    "why": "21 November 2026 was a Saturday, so neither Nasdaq nor Oslo printed a close that day. Settlement uses the last official close on or before that instant: Friday 20 November 2026. Both listings traded that session.",
+    "dividendWindow": "Ex-dividend dates strictly after the 21 November 2025 strike close and on or before the 20 November 2026 settlement close. A buyer at the strike close does not receive a dividend that goes ex that same day. A dividend going ex on the settlement date would count, because the shares were held through the previous close. None fell on the settlement date.",
+    "priceField": "indicators.quote[0].close — the unadjusted session close. adjclose was not used, because dividends are added in cash. Using the adjusted close as well would count dividends twice.",
+    "rounding": "Closes are the Yahoo prints rounded half-up to the cent, which is how both names quote. Those cent prices are the ones in the return. They match the strikes the bet was struck at ($178.88 and 70.54 NOK)."
+  },
+  "source": {
+    "name": "Yahoo Finance chart API",
+    "fetchedAt": "2026-11-22T08:18:00Z",
+    "hosts": [
+      "https://query1.finance.yahoo.com",
+      "https://query2.finance.yahoo.com"
+    ],
+    "hostsAgree": true,
+    "interval": "1d",
+    "events": "div|split",
+    "urls": {
+      "NVDA": "https://query1.finance.yahoo.com/v8/finance/chart/NVDA?period1=1761969600&period2=1795410000&interval=1d&events=div%7Csplit",
+      "NHY.OL": "https://query1.finance.yahoo.com/v8/finance/chart/NHY.OL?period1=1761951600&period2=1795388400&interval=1d&events=div%7Csplit"
+    },
+    "otherSources": "Stooq was requested as a second source and returned a bot-check page rather than prices, so it is not cited. No figure below was typed in by hand. Splits in the window: none on either name."
+  },
+  "nvda": {
+    "side": "THE CLAW",
+    "ticker": "NVDA",
+    "exchange": "NasdaqGS",
+    "currency": "USD",
+    "strike": {
+      "date": "2025-11-21",
+      "rawClose": 178.8800048828125,
+      "close": 178.88,
+      "volume": 346926200
+    },
+    "settlement": {
+      "date": "2026-11-20",
+      "rawClose": 125.52999877929688,
+      "close": 125.53,
+      "volume": 626373200
+    },
+    "dividends": [
+      { "exDate": "2025-12-04", "amount": 0.01, "currency": "USD" },
+      { "exDate": "2026-03-11", "amount": 0.01, "currency": "USD" },
+      { "exDate": "2026-06-04", "amount": 0.25, "currency": "USD" },
+      { "exDate": "2026-09-10", "amount": 0.25, "currency": "USD" }
+    ]
+  },
+  "nhy": {
+    "side": "G-WAGON",
+    "ticker": "NHY",
+    "symbol": "NHY.OL",
+    "exchange": "Oslo",
+    "currency": "NOK",
+    "strike": {
+      "date": "2025-11-21",
+      "rawClose": 70.54000091552734,
+      "close": 70.54,
+      "volume": 3494653
+    },
+    "settlement": {
+      "date": "2026-11-20",
+      "rawClose": 64.27999877929688,
+      "close": 64.28,
+      "volume": 4897004
+    },
+    "dividends": [
+      { "exDate": "2026-05-08", "amount": 3.0, "currency": "NOK" }
+    ],
+    "exDateNote": "On the Oslo listing the close went from 106.55 NOK on 7 May 2026 to 104.00 NOK on 8 May 2026, the morning Yahoo marks as the 3.00 NOK ex-date. That gap is consistent with a cash dividend but is the same source, not an independent one."
+  },
+  "result": {
+    "formula": "(settlementClose + dividends - strikeClose) / strikeClose",
+    "nvda": {
+      "dividends": 0.52,
+      "priceReturnPct": -29.8244633274,
+      "dividendReturnPct": 0.2906976744,
+      "totalReturnPct": -29.533765653
+    },
+    "nhy": {
+      "dividends": 3.0,
+      "priceReturnPct": -8.874397505,
+      "dividendReturnPct": 4.2529061525,
+      "totalReturnPct": -4.6214913524
+    },
+    "marginPercentagePoints": 24.9122743006,
+    "marginDefinition": "NHY total return minus NVDA total return",
+    "winner": "G-WAGON",
+    "loser": "THE CLAW",
+    "pays": "THE CLAW buys a full night at Le Benjamin"
+  },
+  "spcxReferenceCheck": {
+    "symbol": "SPCX",
+    "name": "Space Exploration Technologies Corp.",
+    "exchange": "NasdaqGS",
+    "date": "2026-11-18",
+    "rawClose": 143.5,
+    "close": 143.5,
+    "volume": 86453900,
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SPCX?period1=1793505600&period2=1795410000&interval=1d&events=div%7Csplit",
+    "strikeArithmetic": "143.50 × 1.05 = 150.675, rounded half-up to the cent = 150.68. The live strike is the contractual 150.68, not a fresh multiply on each page view.",
+    "note": "Confirmed on query1 and query2. No SPCX dividends or splits were returned in this window. The live price is not stored here; the site reads it at request time."
+  }
+}
