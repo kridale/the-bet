@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "THE BET — SpaceX, Herman under versus Dale over. Strike $150.68. Loser pays dinner at Antoinetta.";
+export const alt = "THE BET — SpaceX, G-WAGON under versus THE CLAW over. Strike $150.68. Loser pays dinner at Antoinetta.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -26,7 +26,7 @@ export default function OgImage() {
           SPACEX
         </div>
         <div style={{ display: "flex", fontSize: 34, color: "#cfc8bc", marginTop: 6 }}>
-          Herman vs Dale
+          G-WAGON vs THE CLAW
         </div>
         <div style={{ display: "flex", marginTop: 34, gap: 22 }}>
           <div
@@ -40,7 +40,7 @@ export default function OgImage() {
             }}
           >
             <div style={{ display: "flex", color: "#49d6ff", fontSize: 20, letterSpacing: 4 }}>UNDER</div>
-            <div style={{ display: "flex", fontSize: 64, fontWeight: 700, marginTop: 6 }}>HERMAN</div>
+            <div style={{ display: "flex", fontSize: 52, fontWeight: 700, marginTop: 6 }}>G-WAGON</div>
           </div>
           <div
             style={{
@@ -53,7 +53,7 @@ export default function OgImage() {
             }}
           >
             <div style={{ display: "flex", color: "#ff8a2a", fontSize: 20, letterSpacing: 4 }}>OVER</div>
-            <div style={{ display: "flex", fontSize: 64, fontWeight: 700, marginTop: 6 }}>DALE</div>
+            <div style={{ display: "flex", fontSize: 52, fontWeight: 700, marginTop: 6 }}>THE CLAW</div>
           </div>
         </div>
         <div style={{ display: "flex", marginTop: 36, justifyContent: "space-between", fontSize: 30 }}>

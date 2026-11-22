@@ -1,6 +1,6 @@
 # THE BET
 
-A one-page scoreboard. The live bet is SpaceX (SPCX), Herman under versus Kristoffer Dale over. The NVDA versus NHY total-return bet is settled.
+A one-page scoreboard. The live bet is SpaceX (SPCX), G-WAGON under versus THE CLAW over. The NVDA versus NHY total-return bet is settled.
 
 ## NVDA vs NHY — final
 
@@ -25,7 +25,7 @@ The raw prints, volumes, request URLs, and the rounding rule are in [`data/nvda-
 - Reference: SPCX close on 18 Nov 2026 = **$143.50** (Yahoo, same file).
 - Strike: 143.50 × 1.05 = 150.675, rounded to **$150.68**.
 - Settles on the SPCX close on **19 Nov 2027**, 16:00 America/New_York.
-- Herman is under. Kristoffer Dale is over. Loser pays dinner at Antoinetta.
+- G-WAGON is under. THE CLAW is over. Loser pays dinner at Antoinetta.
 - Splits adjust the strike by the same ratio. Dividends do not. A share exchange divides the strike by the exchange ratio. A cash takeover is decided by the deal price.
 
 The page asks `/api/spcx`, which reads Yahoo’s chart API on the server. The browser never calls Yahoo, which is what was breaking the quote on a phone.

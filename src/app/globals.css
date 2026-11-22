@@ -57,10 +57,10 @@ button { font: inherit; }
   pointer-events: none;
 }
 
-.wrap[data-leader="herman"]::before {
+.wrap[data-leader="wagon"]::before {
   background: radial-gradient(ellipse at 0% 8%, rgba(73, 214, 255, 0.14), transparent 46%);
 }
-.wrap[data-leader="dale"]::before {
+.wrap[data-leader="claw"]::before {
   background: radial-gradient(ellipse at 100% 0%, rgba(255, 138, 42, 0.16), transparent 48%);
 }
 
@@ -124,8 +124,8 @@ h1 {
 .matchup {
   margin-top: 8px;
   font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(1.5rem, 5vw, 2.15rem);
-  letter-spacing: 0.08em;
+  font-size: clamp(1.25rem, 4.8vw, 2.15rem);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #f4f0e8;
 }
@@ -240,8 +240,8 @@ h1 {
   text-transform: uppercase;
   line-height: 0.95;
 }
-.call.herman { color: #49d6ff; }
-.call.dale { color: #ff8a2a; }
+.call.wagon { color: #49d6ff; }
+.call.claw { color: #ff8a2a; }
 .call.tie, .call.none { color: #d9d3c7; }
 
 .clock {
@@ -392,8 +392,8 @@ h1 {
   border: 1px solid #2a2d36;
   background: rgba(16, 18, 24, 0.92);
 }
-.side.herman { --side: #49d6ff; }
-.side.dale { --side: #ff8a2a; }
+.side.wagon { --side: #49d6ff; }
+.side.claw { --side: #ff8a2a; }
 .side .role {
   color: var(--side);
   font-size: 0.78rem;
@@ -403,7 +403,7 @@ h1 {
 }
 .side h2 {
   font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
-  font-size: clamp(4.4rem, 20vw, 7.2rem);
+  font-size: clamp(3rem, 14vw, 6.2rem);
   font-weight: 700;
   line-height: 0.78;
   letter-spacing: -0.03em;

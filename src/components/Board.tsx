@@ -91,8 +91,8 @@ function Countdown() {
 
 function aheadOf(price: number, strike: number) {
   const cents = Math.round(price * 100) - Math.round(strike * 100);
-  if (cents < 0) return "herman" as const;
-  if (cents > 0) return "dale" as const;
+  if (cents < 0) return "wagon" as const;
+  if (cents > 0) return "claw" as const;
   return "tie" as const;
 }
 
@@ -344,7 +344,7 @@ export default function Board({ initial }: { initial: SpcxSnapshot }) {
             Active bet
           </p>
           <h1>SpaceX</h1>
-          <p className="matchup">Herman <i>vs</i> Dale</p>
+          <p className="matchup">G-WAGON <i>vs</i> THE CLAW</p>
           <p className="company">{live?.name ?? "Space Exploration Technologies"} · SPCX</p>
         </div>
         <div className="hero-rocket">
@@ -383,13 +383,13 @@ export default function Board({ initial }: { initial: SpcxSnapshot }) {
             </div>
           </div>
           <p className={`call ${leader ?? "none"}`}>
-            {leader === "herman" && "Herman leads"}
-            {leader === "dale" && "Dale leads"}
+            {leader === "wagon" && "G-WAGON leads"}
+            {leader === "claw" && "THE CLAW leads"}
             {leader === "tie" && "Level with the strike"}
             {leader == null && "Waiting on a price"}
           </p>
           {distance != null && (
-            <p className="ref-line">{formatSignedPct((distance / strike) * 100)} from the strike. Under is Herman. Over is Kristoffer Dale.</p>
+            <p className="ref-line">{formatSignedPct((distance / strike) * 100)} from the strike. Under is G-WAGON. Over is THE CLAW.</p>
           )}
           <Countdown />
           <p className="ref-line">
@@ -404,18 +404,17 @@ export default function Board({ initial }: { initial: SpcxSnapshot }) {
       <div className="stack instruments">
         <FlightPath price={live?.price ?? null} strike={strike} reference={SPCX.referenceClose} />
         <div className="face">
-          <article className={`side herman ${leader === "herman" ? "lead" : leader ? "trail" : ""}`}>
+          <article className={`side wagon ${leader === "wagon" ? "lead" : leader ? "trail" : ""}`}>
             <p className="role">Under</p>
-            <h2>Herman</h2>
+            <h2>G-WAGON</h2>
             <p className="need">Wins if SPCX closes under {formatUsd(strike)}.</p>
-            <p className="status">{leader === "herman" ? "Leading" : leader === "tie" ? "On the strike" : leader === "dale" ? "Trailing" : "No quote"}</p>
+            <p className="status">{leader === "wagon" ? "Leading" : leader === "tie" ? "On the strike" : leader === "claw" ? "Trailing" : "No quote"}</p>
           </article>
-          <article className={`side dale ${leader === "dale" ? "lead" : leader ? "trail" : ""}`}>
+          <article className={`side claw ${leader === "claw" ? "lead" : leader ? "trail" : ""}`}>
             <p className="role">Over</p>
-            <h2>Dale</h2>
-            <p className="who">Kristoffer Dale</p>
+            <h2>THE CLAW</h2>
             <p className="need">Wins if SPCX closes over {formatUsd(strike)}.</p>
-            <p className="status">{leader === "dale" ? "Leading" : leader === "tie" ? "On the strike" : leader === "herman" ? "Trailing" : "No quote"}</p>
+            <p className="status">{leader === "claw" ? "Leading" : leader === "tie" ? "On the strike" : leader === "wagon" ? "Trailing" : "No quote"}</p>
           </article>
         </div>
       </div>
@@ -442,7 +441,7 @@ export default function Board({ initial }: { initial: SpcxSnapshot }) {
           <p className="kicker">Ground rules</p>
           <h2 className="track-title">Fine print</h2>
           <ol>
-            <li><strong>Settlement.</strong> SPCX’s official close on 19 November 2027, 16:00 America/New_York. Herman is under. Kristoffer Dale is over.</li>
+            <li><strong>Settlement.</strong> SPCX’s official close on 19 November 2027, 16:00 America/New_York. G-WAGON is under. THE CLAW is over.</li>
             <li><strong>Strike.</strong> The 18 November 2026 close was $143.50. Five percent on top is $150.675, which rounds to $150.68.</li>
             <li><strong>A deal.</strong> If SPCX is exchanged for Tesla shares, or the company is acquired, the bet follows the consideration. In a share exchange the strike is divided by the exchange ratio (strike / ratio) and settlement moves to that new share’s close on 19 November 2027. In a cash takeover, the cash per share decides when the deal completes.</li>
             <li><strong>Splits.</strong> Splits and reverse splits adjust the strike by the same ratio. A 2-for-1 turns $150.68 into $75.34. Dividends do not move the strike.</li>

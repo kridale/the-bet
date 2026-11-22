@@ -6,9 +6,9 @@ import "@fontsource/barlow-condensed/700.css";
 import "./globals.css";
 import { siteUrl } from "@/lib/site";
 
-const title = "THE BET · SpaceX — Herman vs Dale";
+const title = "THE BET · SpaceX — G-WAGON vs THE CLAW";
 const description =
-  "Herman takes under, Kristoffer Dale takes over. SPCX strike $150.68, settled on the 19 Nov 2027 close. Loser pays dinner at Antoinetta.";
+  "G-WAGON takes under, THE CLAW takes over. SPCX strike $150.68, settled on the 19 Nov 2027 close. Loser pays dinner at Antoinetta.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
